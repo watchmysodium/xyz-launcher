@@ -547,102 +547,73 @@ loadGames();
   </main>
 
 <script>
-/* ===== CONFIG =====
-   Change proxy to your worker URL (already set to your working worker)
-   Add/remove Steam app IDs in APP_IDS as needed.
-*/
-const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/?url=";
-const APP_IDS = [1091500, 1174180, 730, 578080, 271590]; // example list
+const JSON_URL = "https://hydralinks.pages.dev/sources/fitgirl.json"; // or dodi/steamrip
+const gridEl = document.getElementById("grid");
+const searchEl = document.getElementById("search");
+const overlay = document.getElementById("overlay");
+const modalTitle = document.getElementById("modalTitle");
+const modalDesc = document.getElementById("modalDesc");
+const modalDownload = document.getElementById("modalDownload");
+const closeModalBtn = document.getElementById("closeModal");
 
-/* ===== UI Helpers ===== */
-function createModal(message){
-  const backdrop = document.createElement('div');
-  backdrop.className = 'modal-backdrop';
-  backdrop.innerHTML = `
-    <div class="modal" role="dialog" aria-modal="true">
-      <div class="modal-header">
-        <span class="material-icons">error_outline</span>
-        <strong>Notice</strong>
-      </div>
-      <div class="modal-body">${message}</div>
-      <div class="modal-footer">
-        <button id="modalClose">OK</button>
-      </div>
-    </div>`;
-  backdrop.querySelector('#modalClose').onclick = ()=>backdrop.remove();
-  document.body.appendChild(backdrop);
-  return backdrop;
-}
+let gamesCache = [];
 
-/* ===== Load Steam appdetails via your proxy and render cards ===== */
-async function fetchAppDetails(appId){
-  const url = `${PROXY}https://store.steampowered.com/api/appdetails?appids=${appId}`;
-  const res = await fetch(url);
-  // if the proxy returned non-JSON or an error, this may throw
-  return res.json();
-}
+async function loadGames() {
+  gridEl.innerHTML = '<div style="color:var(--muted)">Loading repacks...</div>';
+  try {
+    const res = await fetch(JSON_URL);
+    const data = await res.json();
+    gamesCache = data;
 
-async function loadGames(){
-  const container = document.getElementById('games');
-  container.innerHTML = '<div style="color:var(--muted)">Loading games...</div>';
-
-  const fragments = document.createDocumentFragment();
-  let loadedAny = false;
-
-  for (const id of APP_IDS){
-    try {
-      const data = await fetchAppDetails(id);
-      const payload = data?.[id];
-      if (!payload || !payload.success || !payload.data) {
-        console.warn('No data for', id);
-        continue;
-      }
-      const info = payload.data;
-      loadedAny = true;
-
-      const card = document.createElement('div');
-      card.className = 'card';
+    const frag = document.createDocumentFragment();
+    data.forEach((game, i) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.dataset.name = game.title.toLowerCase();
       card.innerHTML = `
-        <img class="thumb" src="${info.header_image || 'https://placehold.co/400x200/000/fff?text=No+Image'}" alt="${escapeHtml(info.name)}">
-        <div class="name">${escapeHtml(info.name)}</div>
-        <div class="desc">${escapeHtml(info.short_description || '')}</div>
-        <div class="actions">
-          <button class="btn primary" data-appid="${id}">Download</button>
-          <button class="btn" data-link="https://store.steampowered.com/app/${id}">View on Steam</button>
+        <div class="art" style="background-image:url('https://docs.hydralauncher.gg/assets/hydra.RM4cTNvX.png')"></div>
+        <div class="meta">
+          <div class="name">${game.title}</div>
+          <div class="sub">Size: ${game.fileSize || "Unknown"} • Uploaded: ${new Date(game.uploadDate).toLocaleDateString()}</div>
+          <div class="row"><button class="btn primary">Details</button></div>
         </div>
       `;
-      // Download -> show modal message
-      card.querySelector('.btn.primary').addEventListener('click', (e)=>{
-        createModal('<strong>Support the devs — piracy is a crime.</strong><br><br>Downloads are disabled in this demo. Please purchase the game on Steam to support the developers.');
-      });
-      // View on Steam -> open official page
-      card.querySelector('.btn:not(.primary)').addEventListener('click', (e)=>{
-        const link = e.currentTarget.getAttribute('data-link');
-        window.open(link, '_blank');
-      });
+      card.querySelector(".btn").addEventListener("click", () => openModal(game));
+      frag.appendChild(card);
+    });
 
-      fragments.appendChild(card);
-    } catch (err){
-      console.error('Failed to load app', id, err);
-      // continue to next id
-    }
+    gridEl.innerHTML = "";
+    gridEl.appendChild(frag);
+  } catch (err) {
+    gridEl.innerHTML = `<div style="color:var(--muted)">Error loading repacks. Check JSON link.</div>`;
   }
-
-  container.innerHTML = '';
-  if (loadedAny) container.appendChild(fragments);
-  else container.innerHTML = '<div style="color:var(--muted)">No games loaded — check your proxy or app IDs.</div>';
 }
 
-/* small helper to avoid injecting raw HTML from Steam */
-function escapeHtml(str){
-  if (!str) return '';
-  return String(str).replace(/[&<>"']/g, s => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  })[s]);
+function openModal(game) {
+  modalTitle.textContent = game.title;
+  modalDesc.innerHTML = `
+    <strong>Size:</strong> ${game.fileSize}<br>
+    <strong>Uploaded:</strong> ${new Date(game.uploadDate).toLocaleDateString()}<br><br>
+    <strong>Available links:</strong><br>
+    ${game.uris.map(u => `<a href="${u}" target="_blank" style="color:#6ad8ff">${u}</a>`).join("<br>")}
+  `;
+  modalDownload.textContent = "Open First Link";
+  modalDownload.onclick = () => window.open(game.uris[0], "_blank");
+  overlay.style.display = "flex";
 }
 
-/* start */
+closeModalBtn.addEventListener("click", () => overlay.style.display = "none");
+overlay.addEventListener("click", e => { if (e.target === overlay) overlay.style.display = "none"; });
+
+searchEl.addEventListener("input", () => {
+  const q = searchEl.value.toLowerCase();
+  Array.from(gridEl.children).forEach(card => {
+    card.style.display = card.dataset.name.includes(q) ? "" : "none";
+  });
+});
+
 loadGames();
 </script>
+
 </body>
 </html>
