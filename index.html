@@ -1,92 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XYZ Launcher</title>
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #0a0a0a;
-  color: white;
-}
-header {
-  background-color: #1a1a1a;
-  padding: 1rem;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: bold;
-  border-bottom: 2px solid #222;
-}
-#games {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
-  padding: 20px;
-}
-.game {
-  background: #141414;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 0 10px #000;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-.game:hover {
-  transform: scale(1.05);
-}
-.game img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-}
-.game h3 {
-  margin: 10px;
-  font-size: 1.1rem;
-}
-.loading {
-  text-align: center;
-  padding: 30px;
-  font-size: 1.2rem;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>sodium.xyz - Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      color: white;
+      font-family: 'Pixelify Sans', sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      border-right: 1px solid #222;
+    }
+
+    .sidebar h2 {
+      color: #0ff;
+      margin-bottom: 20px;
+    }
+
+    .sidebar a {
+      color: #aaa;
+      text-decoration: none;
+      margin: 10px 0;
+      transition: 0.2s;
+    }
+
+    .sidebar a:hover {
+      color: white;
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+    }
+
+    .game-card {
+      background: #1a1a1a;
+      border-radius: 15px;
+      padding: 10px;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .game-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #0ff5;
+    }
+
+    .game-card img {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .game-card h3 {
+      margin: 10px 0 5px;
+      font-size: 16px;
+      color: #0ff;
+    }
+
+    .game-card button {
+      background: #0ff;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+      color: #000;
+      transition: background 0.2s;
+    }
+
+    .game-card button:hover {
+      background: #0cc;
+    }
+  </style>
 </head>
 <body>
-<header>XYZ Launcher</header>
-<div id="games" class="loading">Loading games...</div>
 
-<script>
-async function loadGames() {
-  const gamesContainer = document.getElementById('games');
-  try {
-    const response = await fetch('https://cool-dawn-8b67.amargomma50.workers.dev/');
-    const data = await response.json();
+  <div class="sidebar">
+    <h2>sodium.xyz</h2>
+    <a href="#">Home</a>
+    <a href="#">Library</a>
+    <a href="#">Downloads</a>
+    <a href="#">Profile</a>
+    <a href="#">Settings</a>
+  </div>
 
-    gamesContainer.innerHTML = '';
-    for (const id in data) {
-      const game = data[id];
-      if (!game || !game.data) continue;
-      const info = game.data;
+  <div class="main">
+    <h1>Hydra Games</h1>
+    <div class="game-grid" id="gameGrid"></div>
+  </div>
 
-      const div = document.createElement('div');
-      div.className = 'game';
-      div.innerHTML = `
-        <img src="${info.header_image || 'https://via.placeholder.com/220x150'}" alt="${info.name}">
-        <h3>${info.name}</h3>
-      `;
-      div.onclick = () => {
-        window.location.href = \`game.html?id=\${id}\`;
-      };
-      gamesContainer.appendChild(div);
+  <script>
+    async function loadGames() {
+      const urls = [
+        'https://hydralinks.pages.dev/sources/fitgirl.json',
+        'https://hydralinks.pages.dev/sources/dodi.json',
+        'https://hydralinks.pages.dev/sources/steamrip.json'
+      ];
+
+      const gameGrid = document.getElementById('gameGrid');
+      gameGrid.innerHTML = '<p>Loading games...</p>';
+
+      try {
+        const responses = await Promise.all(urls.map(u => fetch(u)));
+        const data = await Promise.all(responses.map(r => r.json()));
+
+        const allGames = data.flatMap(src => Object.values(src));
+        gameGrid.innerHTML = '';
+
+        allGames.slice(0, 50).forEach(game => {
+          const card = document.createElement('div');
+          card.className = 'game-card';
+          card.innerHTML = `
+            <img src="${game.image || 'https://via.placeholder.com/300x400?text=No+Cover'}" alt="${game.title}">
+            <h3>${game.title}</h3>
+            <button onclick="openGame('${game.link}')">View Game</button>
+          `;
+          gameGrid.appendChild(card);
+        });
+
+      } catch (err) {
+        gameGrid.innerHTML = '<p>Failed to load games 😭</p>';
+        console.error(err);
+      }
     }
-  } catch (err) {
-    console.error(err);
-    gamesContainer.innerHTML = 'Failed to load games 😔';
-  }
-}
 
-loadGames();
-</script>
+    function openGame(link) {
+      window.location.href = link;
+    }
+
+    loadGames();
+  </script>
+
 </body>
 </html>
