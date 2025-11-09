@@ -1,158 +1,300 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>sodium.xyz - Games</title>
-  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      background: #0a0a0a;
-      color: white;
-      font-family: 'Pixelify Sans', sans-serif;
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>XYZ / Hydra-style Launcher</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #040406;
+    --bg2: #0b0b0d;
+    --card: rgba(255,255,255,0.03);
+    --muted: #bdbdbd;
+    --accent: #6ad8ff;
+  }
+  *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#fff}
+  .app {
+    display:flex;height:100vh;gap:18px;align-items:stretch;padding:22px;
+  }
 
-    /* Sidebar */
-    .sidebar {
-      width: 220px;
-      background: #111;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-      border-right: 1px solid #222;
-    }
+  /* sidebar */
+  .sidebar {
+    width:260px;background:rgba(12,12,12,0.5);backdrop-filter:blur(10px);border-radius:12px;padding:20px;border:1px solid rgba(255,255,255,0.03);
+    display:flex;flex-direction:column;gap:18px;
+  }
+  .brand {
+    display:flex;gap:12px;align-items:center;
+  }
+  .logo {
+    width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#0f84ff,#6ad8ff);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#001;
+    box-shadow:0 6px 20px rgba(0,0,0,0.6);
+  }
+  .brand h1{font-size:16px;margin:0;letter-spacing:1px}
+  .brand p{margin:0;color:var(--muted);font-size:12px}
 
-    .sidebar h2 {
-      color: #0ff;
-      margin-bottom: 20px;
-    }
+  .sidebar .links{display:flex;flex-direction:column;gap:8px}
+  .links button{
+    display:flex;align-items:center;gap:12px;padding:10px;border-radius:8px;border:0;background:transparent;color:var(--muted);cursor:pointer;
+  }
+  .links button:hover{background:rgba(255,255,255,0.02);color:#fff}
 
-    .sidebar a {
-      color: #aaa;
-      text-decoration: none;
-      margin: 10px 0;
-      transition: 0.2s;
-    }
+  /* main content */
+  .main {
+    flex:1;display:flex;flex-direction:column;gap:16px;
+  }
+  .toprow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .title{font-size:20px;font-weight:600}
+  .controls{display:flex;gap:8px;align-items:center}
+  .search{
+    background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03);padding:8px 12px;border-radius:10px;color:#fff;
+    min-width:240px;
+  }
 
-    .sidebar a:hover {
-      color: white;
-    }
+  /* grid */
+  .grid{
+    margin-top:6px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;align-items:start;
+    padding-bottom:32px;
+  }
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.03);
+    box-shadow:0 8px 30px rgba(0,0,0,0.6);transition:transform .16s;
+  }
+  .card:hover{transform:translateY(-6px)}
+  .card .art{height:120px;background:#111 url('https://docs.hydralauncher.gg/assets/hydra.RM4cTNvX.png') center/cover no-repeat}
+  .card .meta{padding:10px}
+  .card .name{font-weight:700;font-size:15px}
+  .card .sub{font-size:12px;color:var(--muted);height:36px;overflow:hidden;margin-top:6px}
+  .card .row{display:flex;gap:8px;margin-top:10px;align-items:center}
+  .btn{
+    background:transparent;border:1px solid rgba(255,255,255,0.06);padding:7px 10px;border-radius:8px;color:#fff;cursor:pointer;font-weight:600;font-size:13px
+  }
+  .btn.primary{background:linear-gradient(90deg,#2db4ff,#6ad8ff);color:#001;border:0}
+  .small{font-size:12px;color:var(--muted)}
 
-    /* Main content */
-    .main {
-      flex: 1;
-      padding: 30px;
-      overflow-y: auto;
-    }
+  /* modal details */
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:999;
+  }
+  .modal{
+    width:min(980px,94%);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#0b0b0d,#0a0a0c);border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.06);
+    box-shadow:0 30px 80px rgba(0,0,0,0.8);
+  }
+  .modal-top{display:flex;gap:16px}
+  .modal-art{width:420px;height:240px;background:#111 center/cover;border-radius:10px;flex-shrink:0}
+  .modal-info{flex:1;color:var(--muted)}
+  .modal-info h2{margin:0 0 8px 0}
+  .modal-info .metaitem{font-size:13px;margin:6px 0}
+  .modal-info .desc{margin-top:10px;color:#ddd;line-height:1.4}
 
-    .game-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 20px;
-    }
+  .modal-actions{display:flex;gap:10px;margin-top:12px}
+  .notice{
+    margin-top:14px;background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;color:var(--muted);font-size:13px;border:1px dashed rgba(255,255,255,0.03)
+  }
 
-    .game-card {
-      background: #1a1a1a;
-      border-radius: 15px;
-      padding: 10px;
-      text-align: center;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .game-card:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 15px #0ff5;
-    }
-
-    .game-card img {
-      width: 100%;
-      border-radius: 10px;
-    }
-
-    .game-card h3 {
-      margin: 10px 0 5px;
-      font-size: 16px;
-      color: #0ff;
-    }
-
-    .game-card button {
-      background: #0ff;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-family: inherit;
-      font-weight: bold;
-      color: #000;
-      transition: background 0.2s;
-    }
-
-    .game-card button:hover {
-      background: #0cc;
-    }
-  </style>
+  /* responsive */
+  @media (max-width:900px){
+    .modal-top{flex-direction:column}
+    .modal-art{width:100%;height:200px}
+  }
+</style>
 </head>
 <body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">XYZ</div>
+        <div>
+          <h1>Hydra Launcher</h1>
+          <p>Demo • Read-only</p>
+        </div>
+      </div>
 
-  <div class="sidebar">
-    <h2>sodium.xyz</h2>
-    <a href="#">Home</a>
-    <a href="#">Library</a>
-    <a href="#">Downloads</a>
-    <a href="#">Profile</a>
-    <a href="#">Settings</a>
+      <div class="links">
+        <button><span class="material-icons">home</span>Home</button>
+        <button><span class="material-icons">apps</span>Library</button>
+        <button><span class="material-icons">download</span>Downloads</button>
+        <button><span class="material-icons">settings</span>Settings</button>
+      </div>
+
+      <div style="margin-top:auto;color:var(--muted);font-size:13px">Built with Steam store metadata (via your proxy)</div>
+    </aside>
+
+    <main class="main">
+      <div class="toprow">
+        <div>
+          <div class="title">Games</div>
+          <div class="small">Click a card to see details — downloads are disabled.</div>
+        </div>
+        <div class="controls">
+          <input id="search" class="search" placeholder="Search games..." />
+        </div>
+      </div>
+
+      <div id="grid" class="grid"></div>
+    </main>
   </div>
 
-  <div class="main">
-    <h1>Hydra Games</h1>
-    <div class="game-grid" id="gameGrid"></div>
+  <!-- detail modal -->
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true">
+    <div class="modal" id="modal">
+      <div style="display:flex;justify-content:flex-end">
+        <button id="closeModal" class="btn" style="background:transparent">Close</button>
+      </div>
+      <div class="modal-top">
+        <div id="modalArt" class="modal-art"></div>
+        <div class="modal-info">
+          <h2 id="modalTitle">Title</h2>
+          <div id="modalMeta" class="metaitem"></div>
+          <div id="modalGenres" class="metaitem"></div>
+          <div id="modalDesc" class="desc"></div>
+
+          <div class="modal-actions">
+            <button id="modalBuy" class="btn primary">Buy on Steam</button>
+            <button id="modalDownload" class="btn">Download</button>
+          </div>
+
+          <div class="notice" id="notice">
+            Support the devs — piracy is a crime.
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <script>
-    async function loadGames() {
-      const urls = [
-        'https://hydralinks.pages.dev/sources/fitgirl.json',
-        'https://hydralinks.pages.dev/sources/dodi.json',
-        'https://hydralinks.pages.dev/sources/steamrip.json'
-      ];
+<script>
+/* ===== CONFIG ===== */
+const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/?url="; // your worker proxy
+const APP_IDS = [1091500, 1174180, 730, 578080, 271590, 252490]; // editable list of Steam appids
 
-      const gameGrid = document.getElementById('gameGrid');
-      gameGrid.innerHTML = '<p>Loading games...</p>';
+/* ===== Helpers ===== */
+function e(s){ return String(s||''); }
+function escapeHtml(str){ if(!str) return ''; return String(str).replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
 
-      try {
-        const responses = await Promise.all(urls.map(u => fetch(u)));
-        const data = await Promise.all(responses.map(r => r.json()));
+/* ===== UI refs ===== */
+const gridEl = document.getElementById('grid');
+const searchEl = document.getElementById('search');
+const overlay = document.getElementById('overlay');
+const modalArt = document.getElementById('modalArt');
+const modalTitle = document.getElementById('modalTitle');
+const modalMeta = document.getElementById('modalMeta');
+const modalGenres = document.getElementById('modalGenres');
+const modalDesc = document.getElementById('modalDesc');
+const modalBuy = document.getElementById('modalBuy');
+const modalDownload = document.getElementById('modalDownload');
+const closeModalBtn = document.getElementById('closeModal');
 
-        const allGames = data.flatMap(src => Object.values(src));
-        gameGrid.innerHTML = '';
+/* ===== Fetch and render ===== */
+let gamesCache = []; // { id, info }
 
-        allGames.slice(0, 50).forEach(game => {
-          const card = document.createElement('div');
-          card.className = 'game-card';
-          card.innerHTML = `
-            <img src="${game.image || 'https://via.placeholder.com/300x400?text=No+Cover'}" alt="${game.title}">
-            <h3>${game.title}</h3>
-            <button onclick="openGame('${game.link}')">View Game</button>
-          `;
-          gameGrid.appendChild(card);
-        });
+async function fetchSteamApp(appid){
+  try{
+    const url = `${PROXY}https://store.steampowered.com/api/appdetails?appids=${appid}`;
+    const res = await fetch(url);
+    const j = await res.json();
+    const pkg = j?.[appid];
+    if (!pkg || !pkg.success) return null;
+    return pkg.data;
+  }catch(err){
+    console.error('fetchSteamApp',appid,err);
+    return null;
+  }
+}
 
-      } catch (err) {
-        gameGrid.innerHTML = '<p>Failed to load games 😭</p>';
-        console.error(err);
-      }
-    }
+async function loadAll(){
+  gridEl.innerHTML = '<div style="color:var(--muted)">Loading games...</div>';
+  gamesCache = [];
+  const fragment = document.createDocumentFragment();
+  for (const id of APP_IDS){
+    const info = await fetchSteamApp(id);
+    if (!info) continue;
+    const item = { id, info };
+    gamesCache.push(item);
 
-    function openGame(link) {
-      window.location.href = link;
-    }
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.name = (info.name || '').toLowerCase();
 
-    loadGames();
-  </script>
+    const artUrl = info.header_image || 'https://placehold.co/800x450/000/fff?text=No+Image';
+    card.innerHTML = `
+      <div class="art" style="background-image:url('${escapeHtml(artUrl)}'); background-size:cover;"></div>
+      <div class="meta">
+        <div class="name">${escapeHtml(info.name)}</div>
+        <div class="sub">${escapeHtml(info.short_description || '')}</div>
+        <div class="row">
+          <button class="btn primary" data-appid="${id}">Details</button>
+          <div style="flex:1"></div>
+          <div class="small">${escapeHtml(info.release_date?.date || '')}</div>
+        </div>
+      </div>
+    `;
 
+    // open modal on details
+    card.querySelector('.btn.primary').addEventListener('click', ()=> openModal(item));
+    fragment.appendChild(card);
+  }
+
+  gridEl.innerHTML = '';
+  gridEl.appendChild(fragment);
+
+  if (!gamesCache.length) gridEl.innerHTML = '<div style="color:var(--muted)">No games loaded — check your proxy or app IDs.</div>';
+}
+
+/* search */
+searchEl.addEventListener('input', ()=>{
+  const q = searchEl.value.trim().toLowerCase();
+  Array.from(gridEl.children).forEach(card=>{
+    const name = card.dataset.name || '';
+    card.style.display = (!q || name.includes(q)) ? '' : 'none';
+  });
+});
+
+/* modal behavior */
+function openModal(item){
+  const info = item.info;
+  modalArt.style.backgroundImage = `url('${escapeHtml(info.header_image || 'https://placehold.co/1200x675/000/fff?text=No+Image')}')`;
+  modalTitle.textContent = info.name || '—';
+  modalMeta.innerHTML = `<strong>Release:</strong> ${escapeHtml(info.release_date?.date || 'Unknown')} • <strong>Developer:</strong> ${escapeHtml((info.developers||[]).join(', '))}`;
+  modalGenres.innerHTML = `<strong>Genres:</strong> ${(info.genres||[]).map(g=>g.description||g.description).map(escapeHtml).join(', ')}`;
+  modalDesc.innerHTML = info.detailed_description ? info.detailed_description.replace(/<\/?[^>]+(>|$)/g, "") : (info.short_description || 'No description available.');
+  modalBuy.onclick = ()=> window.open(`https://store.steampowered.com/app/${item.id}`, '_blank', 'noopener');
+  modalDownload.onclick = ()=> createNoticeModal();
+  overlay.style.display = 'flex';
+  window.scrollTo(0,0);
+}
+function closeModal(){ overlay.style.display = 'none'; }
+closeModalBtn.addEventListener('click', closeModal);
+overlay.addEventListener('click', e=> { if (e.target === overlay) closeModal(); });
+
+/* notice modal for downloads */
+function createNoticeModal(){
+  const message = `<strong>Support the devs — piracy is a crime.</strong><br><br>Downloads are disabled in this demo. Please purchase the game on Steam to support the developers.`;
+  // small centered system-style popup
+  const wrap = document.createElement('div');
+  wrap.className = 'overlay';
+  wrap.style.background = 'rgba(0,0,0,0.65)';
+  wrap.innerHTML = `
+    <div class="modal" style="width:420px;text-align:left">
+      <div style="display:flex;justify-content:flex-end"><button id="x" class="btn">Close</button></div>
+      <div style="display:flex;gap:12px">
+        <div style="font-size:36px;color:#d32f2f;line-height:1.2"><span class="material-icons">error_outline</span></div>
+        <div style="flex:1;color:#222;background:#fff;padding:12px;border-radius:8px;">
+          <div style="font-weight:700;color:#000;margin-bottom:8px">Notice</div>
+          <div style="color:#000;font-size:14px;line-height:1.4">${message}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrap);
+  wrap.querySelector('#x').onclick = ()=> wrap.remove();
+}
+
+/* init */
+loadAll();
+</script>
 </body>
 </html>
