@@ -9,7 +9,7 @@
 <style>
   :root{--bg:#000;--glass:rgba(20,20,20,0.45);--muted:#bdbdbd}
   *{box-sizing:border-box;font-family:"Pixelify Sans",sans-serif}
-  body{margin:0;height:100vh;background:linear-gradient(180deg,#000,#050505);color:#fff;display:flex;overflow:hidden}
+  body{ margin:0;height:100vh;background:linear-gradient(180deg,#000,#050505);color:#fff;display:flex;overflow:hidden}
   .sidebar{width:220px;background:var(--glass);backdrop-filter:blur(14px);border-right:1px solid rgba(255,255,255,0.04);padding:24px}
   .logo{font-weight:700;letter-spacing:2px;margin-bottom:28px}
   .nav button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--muted);padding:12px;border-radius:8px;text-align:left;cursor:pointer}
@@ -47,15 +47,14 @@
   </div>
 
 <script>
-const APP_IDS = [1091500, 1174180, 271590, 252490, 578080, 381210, 236850]; // Example: Cyberpunk, RDR2, GTA V, Rust, PUBG, DBD, EU4
-
-// your Cloudflare Worker endpoint (replace if your worker URL is different)
+const APP_IDS = [1091500, 1174180, 271590, 252490, 578080, 381210, 236850];
 const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/?url=";
 
 async function loadGames() {
   const out = document.getElementById('games');
   out.innerHTML = "<div style='color:var(--muted)'>Loading games from Steam...</div>";
 
+  let loaded = 0;
   for (const id of APP_IDS) {
     try {
       const apiUrl = `https://store.steampowered.com/api/appdetails?appids=${id}`;
@@ -67,21 +66,22 @@ async function loadGames() {
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
-        <img class="thumb" src="${info.header_image}" alt="">
+        <img class="thumb" src="${info.header_image}" alt="${info.name}">
         <div class="name">${info.name}</div>
-        <div class="desc">${info.short_description || 'No description available.'}</div>
+        <div class="desc">${info.short_description || 'No description.'}</div>
         <div class="actions">
           <button class="btn primary" onclick="window.open('https://store.steampowered.com/app/${id}', '_blank')">View on Steam</button>
         </div>
       `;
       out.appendChild(card);
+      loaded++;
     } catch (err) {
-      console.error("Failed to fetch game:", id, err);
+      console.error("Failed to fetch:", id, err);
     }
   }
 
-  if (out.children.length === 0) {
-    out.innerHTML = "<div style='color:var(--muted)'>No games could be loaded. Check your proxy or Steam API.</div>";
+  if (loaded === 0) {
+    out.innerHTML = "<div style='color:var(--muted)'>No games loaded. Check your proxy.</div>";
   }
 }
 
