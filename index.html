@@ -48,20 +48,18 @@
 
 <script>
 const APP_IDS = [1091500, 1174180, 271590, 252490, 578080, 381210, 236850]; // Example: Cyberpunk, RDR2, GTA V, Rust, PUBG, DBD, EU4
-const REPACK_SOURCES = {
-  FitGirl: "https://hydralinks.pages.dev/sources/fitgirl.json",
-  DODI: "https://hydralinks.pages.dev/sources/dodi.json",
-  SteamRip: "https://hydralinks.pages.dev/sources/steamrip.json"
-};
+
+// your Cloudflare Worker endpoint (replace if your worker URL is different)
+const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/?url=";
 
 async function loadGames() {
   const out = document.getElementById('games');
   out.innerHTML = "<div style='color:var(--muted)'>Loading games from Steam...</div>";
 
-  let loaded = 0;
   for (const id of APP_IDS) {
     try {
-      const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${id}`);
+      const apiUrl = `https://store.steampowered.com/api/appdetails?appids=${id}`;
+      const res = await fetch(`${PROXY}${encodeURIComponent(apiUrl)}`);
       const data = await res.json();
       const info = data[id]?.data;
       if (!info) continue;
@@ -71,43 +69,20 @@ async function loadGames() {
       card.innerHTML = `
         <img class="thumb" src="${info.header_image}" alt="">
         <div class="name">${info.name}</div>
-        <div class="desc">${info.short_description || 'No description.'}</div>
+        <div class="desc">${info.short_description || 'No description available.'}</div>
         <div class="actions">
           <button class="btn primary" onclick="window.open('https://store.steampowered.com/app/${id}', '_blank')">View on Steam</button>
-          <button class="btn" onclick='showRepacks("${encodeURIComponent(info.name)}")'>Downloads</button>
         </div>
       `;
       out.appendChild(card);
-      loaded++;
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch game:", id, err);
     }
   }
-  if (!loaded) out.innerHTML = "<div style='color:var(--muted)'>No games loaded.</div>";
-}
 
-// show modal-style alert with repack links
-async function showRepacks(gameName){
-  const name = decodeURIComponent(gameName);
-  let text = `<strong>${name}</strong><br><br>Available repacks:<br>`;
-  for (const [name, url] of Object.entries(REPACK_SOURCES)){
-    text += `<a href="${url}" target="_blank" style="color:#6af">${name}</a><br>`;
+  if (out.children.length === 0) {
+    out.innerHTML = "<div style='color:var(--muted)'>No games could be loaded. Check your proxy or Steam API.</div>";
   }
-  text += `<br><em>Support the devs — piracy is a crime.</em>`;
-  
-  const modal = document.createElement('div');
-  Object.assign(modal.style, {
-    position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',
-    display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999
-  });
-  modal.innerHTML = `
-    <div style="background:#111;padding:20px 26px;border-radius:10px;max-width:420px;text-align:left;border:1px solid rgba(255,255,255,0.05)">
-      <div style="font-size:18px;margin-bottom:8px">Download Sources</div>
-      <div style="font-size:14px;line-height:1.6">${text}</div>
-      <div style="text-align:right;margin-top:16px"><button style="padding:6px 12px;border:0;border-radius:6px;background:#333;color:#fff;cursor:pointer" onclick="this.closest('div').parentNode.remove()">Close</button></div>
-    </div>
-  `;
-  document.body.appendChild(modal);
 }
 
 loadGames();
