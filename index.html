@@ -1,137 +1,116 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>XYZ Launcher</title>
-  <style>
-    body {
-      background: #0c0c0c;
-      color: white;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      background: #141414;
-      padding: 15px 25px;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .game-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      padding: 20px;
-    }
-
-    .game-card {
-      background: #1a1a1a;
-      border-radius: 12px;
-      overflow: hidden;
-      transition: transform 0.2s ease;
-    }
-
-    .game-card:hover {
-      transform: scale(1.03);
-    }
-
-    .game-card img {
-      width: 100%;
-      height: 140px;
-      object-fit: cover;
-      border-bottom: 2px solid #222;
-    }
-
-    .game-card h3 {
-      margin: 10px;
-      font-size: 18px;
-    }
-
-    .download-links {
-      margin: 10px;
-      background: #252525;
-      padding: 10px;
-      border-radius: 8px;
-    }
-
-    .download-links a {
-      display: block;
-      color: #00adee;
-      text-decoration: none;
-      padding: 5px 0;
-    }
-
-    .download-links a:hover {
-      color: #0ff;
-      text-decoration: underline;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XYZ Launcher — Steam Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  :root{--bg:#000;--glass:rgba(20,20,20,0.45);--muted:#bdbdbd}
+  *{box-sizing:border-box;font-family:"Pixelify Sans",sans-serif}
+  body{margin:0;height:100vh;background:linear-gradient(180deg,#000,#050505);color:#fff;display:flex;overflow:hidden}
+  .sidebar{width:220px;background:var(--glass);backdrop-filter:blur(14px);border-right:1px solid rgba(255,255,255,0.04);padding:24px}
+  .logo{font-weight:700;letter-spacing:2px;margin-bottom:28px}
+  .nav button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--muted);padding:12px;border-radius:8px;text-align:left;cursor:pointer}
+  .nav button:hover{background:rgba(255,255,255,0.03);color:#fff}
+  .main{flex:1;padding:28px;overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent)}
+  .title{font-size:24px;margin-bottom:18px}
+  .games{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+  .card{background:rgba(255,255,255,0.03);border-radius:12px;padding:12px;transition:transform .14s;border:1px solid rgba(255,255,255,0.03)}
+  .card:hover{transform:translateY(-6px);box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+  .thumb{width:100%;height:120px;border-radius:8px;object-fit:cover;background:#111}
+  .name{font-weight:700;margin-top:10px}
+  .desc{color:var(--muted);font-size:13px;margin:8px 0 12px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px}
+  .btn.primary{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15)}
+  .btn:hover{background:rgba(255,255,255,0.15)}
+  .muted{color:var(--muted);font-size:13px;margin-top:12px}
+</style>
 </head>
 <body>
-  <header>XYZ Launcher</header>
+  <div class="sidebar">
+    <div class="logo">xyz launcher</div>
+    <div class="nav">
+      <button><span class="material-icons">home</span>Home</button>
+      <button><span class="material-icons">apps</span>Library</button>
+      <button><span class="material-icons">download</span>Downloads</button>
+      <button><span class="material-icons">settings</span>Settings</button>
+    </div>
+  </div>
 
-  <div class="game-grid" id="gameGrid"></div>
+  <div class="main">
+    <div class="title">Steam Games</div>
+    <div id="games" class="games"></div>
+    <div class="muted">Powered by Steam's public store API.</div>
+  </div>
 
-  <script>
-    async function loadGames() {
-      const gameIds = [397540, 271590, 1174180]; // Example: Borderlands 3, GTA V, RDR2
-      const repackData = [
-        {
-          title: "Borderlands 3 Free Download (Build 15245523)",
-          fileSize: "142 GB",
-          uris: ["https://1fichier.com/?l7bb9mnghcbe4c1e1irb"]
-        },
-        {
-          title: "Bootstrap Island VR Free Download (v0.2.1)",
-          fileSize: "14.5 GB",
-          uris: ["https://gofile.io/d/Wi5zi9"]
-        }
-      ];
+<script>
+const APP_IDS = [1091500, 1174180, 271590, 252490, 578080, 381210, 236850]; // Example: Cyberpunk, RDR2, GTA V, Rust, PUBG, DBD, EU4
+const REPACK_SOURCES = {
+  FitGirl: "https://hydralinks.pages.dev/sources/fitgirl.json",
+  DODI: "https://hydralinks.pages.dev/sources/dodi.json",
+  SteamRip: "https://hydralinks.pages.dev/sources/steamrip.json"
+};
 
-      const grid = document.getElementById("gameGrid");
+async function loadGames() {
+  const out = document.getElementById('games');
+  out.innerHTML = "<div style='color:var(--muted)'>Loading games from Steam...</div>";
 
-      for (const id of gameIds) {
-        try {
-          const response = await fetch(
-            `https://api.allorigins.win/get?url=${encodeURIComponent(
-              "https://store.steampowered.com/api/appdetails?appids=" + id
-            )}`
-          );
-          const text = await response.json();
-          const data = JSON.parse(text.contents)[id].data;
+  let loaded = 0;
+  for (const id of APP_IDS) {
+    try {
+      const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${id}`);
+      const data = await res.json();
+      const info = data[id]?.data;
+      if (!info) continue;
 
-          const repack = repackData.find(r =>
-            r.title.toLowerCase().includes(data.name.toLowerCase())
-          );
-
-          const gameCard = document.createElement("div");
-          gameCard.className = "game-card";
-          gameCard.innerHTML = `
-            <img src="${data.header_image}" alt="${data.name}" />
-            <h3>${data.name}</h3>
-            <div class="download-links">
-              ${
-                repack
-                  ? repack.uris
-                      .map(
-                        u => `<a href="${u}" target="_blank">Download (${repack.fileSize})</a>`
-                      )
-                      .join("")
-                  : `<span>No repack found</span>`
-              }
-            </div>
-          `;
-          grid.appendChild(gameCard);
-        } catch (err) {
-          console.error("Error loading game", err);
-        }
-      }
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img class="thumb" src="${info.header_image}" alt="">
+        <div class="name">${info.name}</div>
+        <div class="desc">${info.short_description || 'No description.'}</div>
+        <div class="actions">
+          <button class="btn primary" onclick="window.open('https://store.steampowered.com/app/${id}', '_blank')">View on Steam</button>
+          <button class="btn" onclick='showRepacks("${encodeURIComponent(info.name)}")'>Downloads</button>
+        </div>
+      `;
+      out.appendChild(card);
+      loaded++;
+    } catch (err) {
+      console.error(err);
     }
+  }
+  if (!loaded) out.innerHTML = "<div style='color:var(--muted)'>No games loaded.</div>";
+}
 
-    loadGames();
-  </script>
+// show modal-style alert with repack links
+async function showRepacks(gameName){
+  const name = decodeURIComponent(gameName);
+  let text = `<strong>${name}</strong><br><br>Available repacks:<br>`;
+  for (const [name, url] of Object.entries(REPACK_SOURCES)){
+    text += `<a href="${url}" target="_blank" style="color:#6af">${name}</a><br>`;
+  }
+  text += `<br><em>Support the devs — piracy is a crime.</em>`;
+  
+  const modal = document.createElement('div');
+  Object.assign(modal.style, {
+    position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',
+    display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999
+  });
+  modal.innerHTML = `
+    <div style="background:#111;padding:20px 26px;border-radius:10px;max-width:420px;text-align:left;border:1px solid rgba(255,255,255,0.05)">
+      <div style="font-size:18px;margin-bottom:8px">Download Sources</div>
+      <div style="font-size:14px;line-height:1.6">${text}</div>
+      <div style="text-align:right;margin-top:16px"><button style="padding:6px 12px;border:0;border-radius:6px;background:#333;color:#fff;cursor:pointer" onclick="this.closest('div').parentNode.remove()">Close</button></div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+loadGames();
+</script>
 </body>
 </html>
