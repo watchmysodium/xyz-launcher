@@ -1,69 +1,75 @@
-<!-- Replace your card creation logic with this snippet -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XYZ Launcher — Steam</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000; --muted:#bdbdbd; --card:#0f0f0f;
+  }
+  *{box-sizing:border-box;font-family:"Pixelify Sans",sans-serif}
+  body{margin:0;background:linear-gradient(180deg,#000,#050505);color:#fff;min-height:100vh;display:flex;gap:0}
+  .sidebar{width:220px;padding:24px;background:rgba(20,20,20,.45);backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,.03)}
+  .logo{font-weight:700;letter-spacing:2px;margin-bottom:22px}
+  .nav button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:8px;text-align:left;cursor:pointer}
+  .nav button:hover{background:rgba(255,255,255,0.03);color:#fff}
+  .main{flex:1;padding:24px;overflow:auto}
+  h1{margin:0 0 14px 0}
+  .games{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,.03);transition:transform .12s}
+  .card:hover{transform:translateY(-6px);box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .thumb{width:100%;height:120px;border-radius:8px;object-fit:cover;background:#111}
+  .name{font-weight:700;margin-top:10px}
+  .desc{color:var(--muted);font-size:13px;margin:8px 0 12px;height:36px;overflow:hidden}
+  .actions{display:flex;gap:8px}
+  .btn{border:1px solid rgba(255,255,255,.06);background:transparent;color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer}
+  .btn.primary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08)}
+  .muted{color:var(--muted);font-size:13px;margin-top:12px}
+  /* modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .modal{background:#ececec;border:2px solid #ccc;border-radius:6px;width:360px;padding:16px;box-shadow:0 8px 40px rgba(0,0,0,.45);color:#000;font-family:Segoe UI, sans-serif}
+  .modal-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .modal-header .material-icons{color:#d32f2f}
+  .modal-body{font-size:14px;line-height:1.4}
+  .modal-footer{text-align:right;margin-top:12px}
+  .modal button{background:#e0e0e0;border:1px solid #999;padding:6px 12px;border-radius:6px;cursor:pointer}
+  .modal button:hover{background:#d6d6d6}
+  @media (max-width:640px){
+    .games{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+    .modal{width:92%}
+  }
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">xyz launcher</div>
+    <nav class="nav">
+      <button><span class="material-icons">home</span>Home</button>
+      <button><span class="material-icons">apps</span>Library</button>
+      <button><span class="material-icons">download</span>Downloads</button>
+      <button><span class="material-icons">settings</span>Settings</button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <h1>Steam Games</h1>
+    <div id="games" class="games"></div>
+    <div class="muted">Data fetched via your Cloudflare Worker proxy.</div>
+  </main>
+
 <script>
-/* Example: games is an array of objects that may include:
-   { title, header_image, link, steam_appid }  -- adapt to your data shape.
-   If you're fetching from Hydra sources, use their "link" field for Visit Source.
-   If you fetched Steam appdetails earlier, use steam_appid to open the Steam store.
+/* ===== CONFIG =====
+   Change proxy to your worker URL (already set to your working worker)
+   Add/remove Steam app IDs in APP_IDS as needed.
 */
+const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/?url=";
+const APP_IDS = [1091500, 1174180, 730, 578080, 271590]; // example list
 
-function createGameCard(g) {
-  const card = document.createElement('div');
-  card.className = 'card';
-
-  const title = (g.title || g.name || 'Untitled');
-  const img = g.header_image || g.background_image || 'https://placehold.co/400x200/000/fff?text=No+Image';
-  const sourceLink = g.link || g.url || ''; // repack / hydra link
-  const steamAppId = g.steam_appid || g.appid || null; // optional Steam ID
-
-  card.innerHTML = `
-    <img class="thumb" src="${img}" alt="">
-    <div class="name">${escapeHtml(title)}</div>
-    <div class="desc">${escapeHtml(g.short_description || g.description || '')}</div>
-    <div class="actions"></div>
-  `;
-
-  const actions = card.querySelector('.actions');
-
-  // Visit Source (Hydra / repack link) - opens in new tab (user-initiated)
-  if (sourceLink) {
-    const visitBtn = document.createElement('button');
-    visitBtn.className = 'btn';
-    visitBtn.textContent = 'Visit Source';
-    visitBtn.addEventListener('click', () => {
-      // Open user-visited page (allowed)
-      window.open(sourceLink, '_blank', 'noopener');
-    });
-    actions.appendChild(visitBtn);
-  }
-
-  // View on Steam if we have steamAppId
-  if (steamAppId) {
-    const steamBtn = document.createElement('button');
-    steamBtn.className = 'btn';
-    steamBtn.textContent = 'View on Steam';
-    steamBtn.addEventListener('click', () => {
-      window.open(`https://store.steampowered.com/app/${encodeURIComponent(steamAppId)}`, '_blank', 'noopener');
-    });
-    actions.appendChild(steamBtn);
-  }
-
-  // Download -> show polite modal encouraging legal purchase
-  const downloadBtn = document.createElement('button');
-  downloadBtn.className = 'btn primary';
-  downloadBtn.textContent = 'Download';
-  downloadBtn.addEventListener('click', () => {
-    showLegalModal("Support the devs — piracy is a crime. Downloads are disabled in this launcher. Please purchase the game on the official store to support the developers.");
-  });
-  actions.appendChild(downloadBtn);
-
-  return card;
-}
-
-/* Modal helper */
-function showLegalModal(message){
-  const existing = document.querySelector('.modal-backdrop');
-  if (existing) existing.remove();
-
+/* ===== UI Helpers ===== */
+function createModal(message){
   const backdrop = document.createElement('div');
   backdrop.className = 'modal-backdrop';
   backdrop.innerHTML = `
@@ -74,27 +80,569 @@ function showLegalModal(message){
       </div>
       <div class="modal-body">${message}</div>
       <div class="modal-footer">
-        <button id="modalOk">OK</button>
+        <button id="modalClose">OK</button>
       </div>
-    </div>
-  `;
-  backdrop.querySelector('#modalOk').onclick = () => backdrop.remove();
+    </div>`;
+  backdrop.querySelector('#modalClose').onclick = ()=>backdrop.remove();
   document.body.appendChild(backdrop);
+  return backdrop;
 }
 
-/* small HTML-escape helper */
+/* ===== Load Steam appdetails via your proxy and render cards ===== */
+async function fetchAppDetails(appId){
+  const url = `${PROXY}https://store.steampowered.com/api/appdetails?appids=${appId}`;
+  const res = await fetch(url);
+  // if the proxy returned non-JSON or an error, this may throw
+  return res.json();
+}
+
+async function loadGames(){
+  const container = document.getElementById('games');
+  container.innerHTML = '<div style="color:var(--muted)">Loading games...</div>';
+
+  const fragments = document.createDocumentFragment();
+  let loadedAny = false;
+
+  for (const id of APP_IDS){
+    try {
+      const data = await fetchAppDetails(id);
+      const payload = data?.[id];
+      if (!payload || !payload.success || !payload.data) {
+        console.warn('No data for', id);
+        continue;
+      }
+      const info = payload.data;
+      loadedAny = true;
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img class="thumb" src="${info.header_image || 'https://placehold.co/400x200/000/fff?text=No+Image'}" alt="${escapeHtml(info.name)}">
+        <div class="name">${escapeHtml(info.name)}</div>
+        <div class="desc">${escapeHtml(info.short_description || '')}</div>
+        <div class="actions">
+          <button class="btn primary" data-appid="${id}">Download</button>
+          <button class="btn" data-link="https://store.steampowered.com/app/${id}">View on Steam</button>
+        </div>
+      `;
+      // Download -> show modal message
+      card.querySelector('.btn.primary').addEventListener('click', (e)=>{
+        createModal('<strong>Support the devs — piracy is a crime.</strong><br><br>Downloads are disabled in this demo. Please purchase the game on Steam to support the developers.');
+      });
+      // View on Steam -> open official page
+      card.querySelector('.btn:not(.primary)').addEventListener('click', (e)=>{
+        const link = e.currentTarget.getAttribute('data-link');
+        window.open(link, '_blank');
+      });
+
+      fragments.appendChild(card);
+    } catch (err){
+      console.error('Failed to load app', id, err);
+      // continue to next id
+    }
+  }
+
+  container.innerHTML = '';
+  if (loadedAny) container.appendChild(fragments);
+  else container.innerHTML = '<div style="color:var(--muted)">No games loaded — check your proxy or app IDs.</div>';
+}
+
+/* small helper to avoid injecting raw HTML from Steam */
 function escapeHtml(str){
   if (!str) return '';
-  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  return String(str).replace(/[&<>"']/g, s => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[s]);
 }
 
-/* Example usage if you have an array `games` */
-function renderGames(games){
-  const container = document.getElementById('games');
-  container.innerHTML = '';
-  for (const g of games) {
-    const card = createGameCard(g);
-    container.appendChild(card);
-  }
-}
+/* start */
+loadGames();
 </script>
+</body>
+</html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XYZ Launcher — Steam</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000; --muted:#bdbdbd; --card:#0f0f0f;
+  }
+  *{box-sizing:border-box;font-family:"Pixelify Sans",sans-serif}
+  body{margin:0;background:linear-gradient(180deg,#000,#050505);color:#fff;min-height:100vh;display:flex;gap:0}
+  .sidebar{width:220px;padding:24px;background:rgba(20,20,20,.45);backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,.03)}
+  .logo{font-weight:700;letter-spacing:2px;margin-bottom:22px}
+  .nav button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:8px;text-align:left;cursor:pointer}
+  .nav button:hover{background:rgba(255,255,255,0.03);color:#fff}
+  .main{flex:1;padding:24px;overflow:auto}
+  h1{margin:0 0 14px 0}
+  .games{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,.03);transition:transform .12s}
+  .card:hover{transform:translateY(-6px);box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .thumb{width:100%;height:120px;border-radius:8px;object-fit:cover;background:#111}
+  .name{font-weight:700;margin-top:10px}
+  .desc{color:var(--muted);font-size:13px;margin:8px 0 12px;height:36px;overflow:hidden}
+  .actions{display:flex;gap:8px}
+  .btn{border:1px solid rgba(255,255,255,.06);background:transparent;color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer}
+  .btn.primary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08)}
+  .muted{color:var(--muted);font-size:13px;margin-top:12px}
+  /* modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .modal{background:#ececec;border:2px solid #ccc;border-radius:6px;width:360px;padding:16px;box-shadow:0 8px 40px rgba(0,0,0,.45);color:#000;font-family:Segoe UI, sans-serif}
+  .modal-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .modal-header .material-icons{color:#d32f2f}
+  .modal-body{font-size:14px;line-height:1.4}
+  .modal-footer{text-align:right;margin-top:12px}
+  .modal button{background:#e0e0e0;border:1px solid #999;padding:6px 12px;border-radius:6px;cursor:pointer}
+  .modal button:hover{background:#d6d6d6}
+  @media (max-width:640px){
+    .games{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+    .modal{width:92%}
+  }
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">xyz launcher</div>
+    <nav class="nav">
+      <button><span class="material-icons">home</span>Home</button>
+      <button><span class="material-icons">apps</span>Library</button>
+      <button><span class="material-icons">download</span>Downloads</button>
+      <button><span class="material-icons">settings</span>Settings</button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <h1>Steam Games</h1>
+    <div id="games" class="games"></div>
+    <div class="muted">Data fetched via your Cloudflare Worker proxy.</div>
+  </main>
+
+<script>
+/* ===== CONFIG =====
+   Change proxy to your worker URL (already set to your working worker)
+   Add/remove Steam app IDs in APP_IDS as needed.
+*/
+const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/?url=";
+const APP_IDS = [1091500, 1174180, 730, 578080, 271590]; // example list
+
+/* ===== UI Helpers ===== */
+function createModal(message){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <span class="material-icons">error_outline</span>
+        <strong>Notice</strong>
+      </div>
+      <div class="modal-body">${message}</div>
+      <div class="modal-footer">
+        <button id="modalClose">OK</button>
+      </div>
+    </div>`;
+  backdrop.querySelector('#modalClose').onclick = ()=>backdrop.remove();
+  document.body.appendChild(backdrop);
+  return backdrop;
+}
+
+/* ===== Load Steam appdetails via your proxy and render cards ===== */
+async function fetchAppDetails(appId){
+  const url = `${PROXY}https://store.steampowered.com/api/appdetails?appids=${appId}`;
+  const res = await fetch(url);
+  // if the proxy returned non-JSON or an error, this may throw
+  return res.json();
+}
+
+async function loadGames(){
+  const container = document.getElementById('games');
+  container.innerHTML = '<div style="color:var(--muted)">Loading games...</div>';
+
+  const fragments = document.createDocumentFragment();
+  let loadedAny = false;
+
+  for (const id of APP_IDS){
+    try {
+      const data = await fetchAppDetails(id);
+      const payload = data?.[id];
+      if (!payload || !payload.success || !payload.data) {
+        console.warn('No data for', id);
+        continue;
+      }
+      const info = payload.data;
+      loadedAny = true;
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img class="thumb" src="${info.header_image || 'https://placehold.co/400x200/000/fff?text=No+Image'}" alt="${escapeHtml(info.name)}">
+        <div class="name">${escapeHtml(info.name)}</div>
+        <div class="desc">${escapeHtml(info.short_description || '')}</div>
+        <div class="actions">
+          <button class="btn primary" data-appid="${id}">Download</button>
+          <button class="btn" data-link="https://store.steampowered.com/app/${id}">View on Steam</button>
+        </div>
+      `;
+      // Download -> show modal message
+      card.querySelector('.btn.primary').addEventListener('click', (e)=>{
+        createModal('<strong>Support the devs — piracy is a crime.</strong><br><br>Downloads are disabled in this demo. Please purchase the game on Steam to support the developers.');
+      });
+      // View on Steam -> open official page
+      card.querySelector('.btn:not(.primary)').addEventListener('click', (e)=>{
+        const link = e.currentTarget.getAttribute('data-link');
+        window.open(link, '_blank');
+      });
+
+      fragments.appendChild(card);
+    } catch (err){
+      console.error('Failed to load app', id, err);
+      // continue to next id
+    }
+  }
+
+  container.innerHTML = '';
+  if (loadedAny) container.appendChild(fragments);
+  else container.innerHTML = '<div style="color:var(--muted)">No games loaded — check your proxy or app IDs.</div>';
+}
+
+/* small helper to avoid injecting raw HTML from Steam */
+function escapeHtml(str){
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, s => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[s]);
+}
+
+/* start */
+loadGames();
+</script>
+</body>
+</html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XYZ Launcher — Steam</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000; --muted:#bdbdbd; --card:#0f0f0f;
+  }
+  *{box-sizing:border-box;font-family:"Pixelify Sans",sans-serif}
+  body{margin:0;background:linear-gradient(180deg,#000,#050505);color:#fff;min-height:100vh;display:flex;gap:0}
+  .sidebar{width:220px;padding:24px;background:rgba(20,20,20,.45);backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,.03)}
+  .logo{font-weight:700;letter-spacing:2px;margin-bottom:22px}
+  .nav button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:8px;text-align:left;cursor:pointer}
+  .nav button:hover{background:rgba(255,255,255,0.03);color:#fff}
+  .main{flex:1;padding:24px;overflow:auto}
+  h1{margin:0 0 14px 0}
+  .games{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,.03);transition:transform .12s}
+  .card:hover{transform:translateY(-6px);box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .thumb{width:100%;height:120px;border-radius:8px;object-fit:cover;background:#111}
+  .name{font-weight:700;margin-top:10px}
+  .desc{color:var(--muted);font-size:13px;margin:8px 0 12px;height:36px;overflow:hidden}
+  .actions{display:flex;gap:8px}
+  .btn{border:1px solid rgba(255,255,255,.06);background:transparent;color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer}
+  .btn.primary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08)}
+  .muted{color:var(--muted);font-size:13px;margin-top:12px}
+  /* modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .modal{background:#ececec;border:2px solid #ccc;border-radius:6px;width:360px;padding:16px;box-shadow:0 8px 40px rgba(0,0,0,.45);color:#000;font-family:Segoe UI, sans-serif}
+  .modal-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .modal-header .material-icons{color:#d32f2f}
+  .modal-body{font-size:14px;line-height:1.4}
+  .modal-footer{text-align:right;margin-top:12px}
+  .modal button{background:#e0e0e0;border:1px solid #999;padding:6px 12px;border-radius:6px;cursor:pointer}
+  .modal button:hover{background:#d6d6d6}
+  @media (max-width:640px){
+    .games{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+    .modal{width:92%}
+  }
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">xyz launcher</div>
+    <nav class="nav">
+      <button><span class="material-icons">home</span>Home</button>
+      <button><span class="material-icons">apps</span>Library</button>
+      <button><span class="material-icons">download</span>Downloads</button>
+      <button><span class="material-icons">settings</span>Settings</button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <h1>Steam Games</h1>
+    <div id="games" class="games"></div>
+    <div class="muted">Data fetched via your Cloudflare Worker proxy.</div>
+  </main>
+
+<script>
+/* ===== CONFIG =====
+   Change proxy to your worker URL (already set to your working worker)
+   Add/remove Steam app IDs in APP_IDS as needed.
+*/
+const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/?url=";
+const APP_IDS = [1091500, 1174180, 730, 578080, 271590]; // example list
+
+/* ===== UI Helpers ===== */
+function createModal(message){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <span class="material-icons">error_outline</span>
+        <strong>Notice</strong>
+      </div>
+      <div class="modal-body">${message}</div>
+      <div class="modal-footer">
+        <button id="modalClose">OK</button>
+      </div>
+    </div>`;
+  backdrop.querySelector('#modalClose').onclick = ()=>backdrop.remove();
+  document.body.appendChild(backdrop);
+  return backdrop;
+}
+
+/* ===== Load Steam appdetails via your proxy and render cards ===== */
+async function fetchAppDetails(appId){
+  const url = `${PROXY}https://store.steampowered.com/api/appdetails?appids=${appId}`;
+  const res = await fetch(url);
+  // if the proxy returned non-JSON or an error, this may throw
+  return res.json();
+}
+
+async function loadGames(){
+  const container = document.getElementById('games');
+  container.innerHTML = '<div style="color:var(--muted)">Loading games...</div>';
+
+  const fragments = document.createDocumentFragment();
+  let loadedAny = false;
+
+  for (const id of APP_IDS){
+    try {
+      const data = await fetchAppDetails(id);
+      const payload = data?.[id];
+      if (!payload || !payload.success || !payload.data) {
+        console.warn('No data for', id);
+        continue;
+      }
+      const info = payload.data;
+      loadedAny = true;
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img class="thumb" src="${info.header_image || 'https://placehold.co/400x200/000/fff?text=No+Image'}" alt="${escapeHtml(info.name)}">
+        <div class="name">${escapeHtml(info.name)}</div>
+        <div class="desc">${escapeHtml(info.short_description || '')}</div>
+        <div class="actions">
+          <button class="btn primary" data-appid="${id}">Download</button>
+          <button class="btn" data-link="https://store.steampowered.com/app/${id}">View on Steam</button>
+        </div>
+      `;
+      // Download -> show modal message
+      card.querySelector('.btn.primary').addEventListener('click', (e)=>{
+        createModal('<strong>Support the devs — piracy is a crime.</strong><br><br>Downloads are disabled in this demo. Please purchase the game on Steam to support the developers.');
+      });
+      // View on Steam -> open official page
+      card.querySelector('.btn:not(.primary)').addEventListener('click', (e)=>{
+        const link = e.currentTarget.getAttribute('data-link');
+        window.open(link, '_blank');
+      });
+
+      fragments.appendChild(card);
+    } catch (err){
+      console.error('Failed to load app', id, err);
+      // continue to next id
+    }
+  }
+
+  container.innerHTML = '';
+  if (loadedAny) container.appendChild(fragments);
+  else container.innerHTML = '<div style="color:var(--muted)">No games loaded — check your proxy or app IDs.</div>';
+}
+
+/* small helper to avoid injecting raw HTML from Steam */
+function escapeHtml(str){
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, s => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[s]);
+}
+
+/* start */
+loadGames();
+</script>
+</body>
+</html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XYZ Launcher — Steam</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000; --muted:#bdbdbd; --card:#0f0f0f;
+  }
+  *{box-sizing:border-box;font-family:"Pixelify Sans",sans-serif}
+  body{margin:0;background:linear-gradient(180deg,#000,#050505);color:#fff;min-height:100vh;display:flex;gap:0}
+  .sidebar{width:220px;padding:24px;background:rgba(20,20,20,.45);backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,.03)}
+  .logo{font-weight:700;letter-spacing:2px;margin-bottom:22px}
+  .nav button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:8px;text-align:left;cursor:pointer}
+  .nav button:hover{background:rgba(255,255,255,0.03);color:#fff}
+  .main{flex:1;padding:24px;overflow:auto}
+  h1{margin:0 0 14px 0}
+  .games{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,.03);transition:transform .12s}
+  .card:hover{transform:translateY(-6px);box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .thumb{width:100%;height:120px;border-radius:8px;object-fit:cover;background:#111}
+  .name{font-weight:700;margin-top:10px}
+  .desc{color:var(--muted);font-size:13px;margin:8px 0 12px;height:36px;overflow:hidden}
+  .actions{display:flex;gap:8px}
+  .btn{border:1px solid rgba(255,255,255,.06);background:transparent;color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer}
+  .btn.primary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08)}
+  .muted{color:var(--muted);font-size:13px;margin-top:12px}
+  /* modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .modal{background:#ececec;border:2px solid #ccc;border-radius:6px;width:360px;padding:16px;box-shadow:0 8px 40px rgba(0,0,0,.45);color:#000;font-family:Segoe UI, sans-serif}
+  .modal-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .modal-header .material-icons{color:#d32f2f}
+  .modal-body{font-size:14px;line-height:1.4}
+  .modal-footer{text-align:right;margin-top:12px}
+  .modal button{background:#e0e0e0;border:1px solid #999;padding:6px 12px;border-radius:6px;cursor:pointer}
+  .modal button:hover{background:#d6d6d6}
+  @media (max-width:640px){
+    .games{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+    .modal{width:92%}
+  }
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">xyz launcher</div>
+    <nav class="nav">
+      <button><span class="material-icons">home</span>Home</button>
+      <button><span class="material-icons">apps</span>Library</button>
+      <button><span class="material-icons">download</span>Downloads</button>
+      <button><span class="material-icons">settings</span>Settings</button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <h1>Steam Games</h1>
+    <div id="games" class="games"></div>
+    <div class="muted">Data fetched via your Cloudflare Worker proxy.</div>
+  </main>
+
+<script>
+/* ===== CONFIG =====
+   Change proxy to your worker URL (already set to your working worker)
+   Add/remove Steam app IDs in APP_IDS as needed.
+*/
+const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/?url=";
+const APP_IDS = [1091500, 1174180, 730, 578080, 271590]; // example list
+
+/* ===== UI Helpers ===== */
+function createModal(message){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <span class="material-icons">error_outline</span>
+        <strong>Notice</strong>
+      </div>
+      <div class="modal-body">${message}</div>
+      <div class="modal-footer">
+        <button id="modalClose">OK</button>
+      </div>
+    </div>`;
+  backdrop.querySelector('#modalClose').onclick = ()=>backdrop.remove();
+  document.body.appendChild(backdrop);
+  return backdrop;
+}
+
+/* ===== Load Steam appdetails via your proxy and render cards ===== */
+async function fetchAppDetails(appId){
+  const url = `${PROXY}https://store.steampowered.com/api/appdetails?appids=${appId}`;
+  const res = await fetch(url);
+  // if the proxy returned non-JSON or an error, this may throw
+  return res.json();
+}
+
+async function loadGames(){
+  const container = document.getElementById('games');
+  container.innerHTML = '<div style="color:var(--muted)">Loading games...</div>';
+
+  const fragments = document.createDocumentFragment();
+  let loadedAny = false;
+
+  for (const id of APP_IDS){
+    try {
+      const data = await fetchAppDetails(id);
+      const payload = data?.[id];
+      if (!payload || !payload.success || !payload.data) {
+        console.warn('No data for', id);
+        continue;
+      }
+      const info = payload.data;
+      loadedAny = true;
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img class="thumb" src="${info.header_image || 'https://placehold.co/400x200/000/fff?text=No+Image'}" alt="${escapeHtml(info.name)}">
+        <div class="name">${escapeHtml(info.name)}</div>
+        <div class="desc">${escapeHtml(info.short_description || '')}</div>
+        <div class="actions">
+          <button class="btn primary" data-appid="${id}">Download</button>
+          <button class="btn" data-link="https://store.steampowered.com/app/${id}">View on Steam</button>
+        </div>
+      `;
+      // Download -> show modal message
+      card.querySelector('.btn.primary').addEventListener('click', (e)=>{
+        createModal('<strong>Support the devs — piracy is a crime.</strong><br><br>Downloads are disabled in this demo. Please purchase the game on Steam to support the developers.');
+      });
+      // View on Steam -> open official page
+      card.querySelector('.btn:not(.primary)').addEventListener('click', (e)=>{
+        const link = e.currentTarget.getAttribute('data-link');
+        window.open(link, '_blank');
+      });
+
+      fragments.appendChild(card);
+    } catch (err){
+      console.error('Failed to load app', id, err);
+      // continue to next id
+    }
+  }
+
+  container.innerHTML = '';
+  if (loadedAny) container.appendChild(fragments);
+  else container.innerHTML = '<div style="color:var(--muted)">No games loaded — check your proxy or app IDs.</div>';
+}
+
+/* small helper to avoid injecting raw HTML from Steam */
+function escapeHtml(str){
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, s => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[s]);
+}
+
+/* start */
+loadGames();
+</script>
+</body>
+</html>
