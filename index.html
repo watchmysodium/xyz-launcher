@@ -1,107 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>XYZ Launcher — Store</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XYZ Launcher — Steam Store</title>
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-:root {
-  --bg: #000;
-  --glass: rgba(20,20,20,0.45);
-  --muted: #bdbdbd;
-}
-* {box-sizing: border-box; font-family: "Pixelify Sans", sans-serif;}
-body {
-  margin: 0; height: 100vh;
-  background: linear-gradient(180deg, #000, #050505);
-  color: #fff; display: flex; overflow: hidden;
-}
-.sidebar {
-  width: 220px; background: var(--glass);
-  backdrop-filter: blur(14px);
-  border-right: 1px solid rgba(255,255,255,0.04);
-  padding: 24px;
-}
-.logo {font-weight: 700; letter-spacing: 2px; margin-bottom: 28px;}
-.nav button {
-  display: flex; align-items: center; gap: 12px;
-  width: 100%; border: 0; background: transparent;
-  color: var(--muted); padding: 12px; border-radius: 8px;
-  text-align: left; cursor: pointer;
-}
-.nav button:hover {background: rgba(255,255,255,0.03); color: #fff;}
-.main {
-  flex: 1; padding: 28px; overflow: auto;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-}
-.title {font-size: 24px; margin-bottom: 18px;}
-.games {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 18px; overflow-x: auto; padding-bottom: 40px;
-}
-.card {
-  background: rgba(255,255,255,0.03);
-  border-radius: 12px;
-  transition: transform 0.14s;
-  border: 1px solid rgba(255,255,255,0.03);
-  overflow: hidden; cursor: pointer;
-}
-.card:hover {transform: translateY(-6px); box-shadow: 0 8px 30px rgba(0,0,0,0.6);}
-.thumb {width: 100%; height: 160px; object-fit: cover;}
-.name {font-weight: 700; margin: 10px;}
+  :root {
+    --bg: #000;
+    --glass: rgba(20,20,20,0.45);
+    --muted: #bdbdbd;
+    --accent: #0af;
+  }
+  * { box-sizing: border-box; font-family: "Pixelify Sans", sans-serif; }
+  body {
+    margin: 0; height: 100vh; background: linear-gradient(180deg, #000, #050505);
+    color: #fff; display: flex; overflow: hidden;
+  }
+  .sidebar {
+    width: 220px; background: var(--glass); backdrop-filter: blur(14px);
+    border-right: 1px solid rgba(255,255,255,0.04); padding: 24px;
+  }
+  .logo { font-weight: 700; letter-spacing: 2px; margin-bottom: 28px; }
+  .nav button {
+    display: flex; align-items: center; gap: 12px; width: 100%; border: 0;
+    background: transparent; color: var(--muted); padding: 12px; border-radius: 8px;
+    text-align: left; cursor: pointer;
+  }
+  .nav button:hover { background: rgba(255,255,255,0.03); color: #fff; }
+  .main {
+    flex: 1; padding: 28px; overflow: auto;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  }
+  .title { font-size: 24px; margin-bottom: 18px; }
+  .games {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px; overflow: hidden;
+    cursor: pointer; transition: transform .14s;
+  }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 8px 30px rgba(0,0,0,0.6); }
+  .thumb { width: 100%; height: 150px; object-fit: cover; background: #111; }
+  .name { font-weight: 700; padding: 12px; }
+  .muted { color: var(--muted); font-size: 13px; margin-top: 12px; }
 
-/* Overlay for game details */
-.overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(20px);
-  display: none; align-items: center; justify-content: center;
-  flex-direction: column; text-align: center; z-index: 9999;
-}
-.overlay.active {display: flex; animation: fadeIn 0.3s ease;}
-.overlay-bg {
-  position: absolute; inset: 0; background-size: cover; background-position: center;
-  opacity: 0.3; filter: blur(40px);
-}
-.overlay-content {
-  position: relative; max-width: 800px; z-index: 10;
-  padding: 20px; background: rgba(0,0,0,0.4);
-  border-radius: 16px;
-}
-.overlay img {
-  width: 400px; border-radius: 12px; margin-bottom: 16px;
-}
-.overlay h2 {margin-bottom: 12px;}
-.overlay p {color: var(--muted); line-height: 1.5;}
-.overlay .actions {
-  display: flex; justify-content: center; gap: 10px; margin-top: 20px;
-}
-.btn {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 8px 14px; border-radius: 8px;
-  cursor: pointer; color: #fff;
-}
-.btn:hover {background: rgba(255,255,255,0.1);}
-.close {
-  position: absolute; top: 20px; right: 20px;
-  cursor: pointer; font-size: 28px; color: #fff;
-}
-@keyframes fadeIn {
-  from {opacity: 0;}
-  to {opacity: 1;}
-}
+  /* overlay full-screen */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+    display: none; flex-direction: column; align-items: center;
+    justify-content: center; padding: 20px; overflow-y: auto; z-index: 10;
+  }
+  .overlay.active { display: flex; }
+  .overlay img { width: 60%; border-radius: 12px; margin-bottom: 20px; }
+  .overlay h2 { margin: 0 0 12px; }
+  .overlay p { max-width: 800px; text-align: center; color: var(--muted); }
+  .close-btn {
+    position: absolute; top: 20px; right: 30px; cursor: pointer;
+    background: rgba(255,255,255,0.1); border: 0; color: #fff;
+    font-size: 20px; border-radius: 50%; width: 40px; height: 40px;
+  }
 </style>
 </head>
 <body>
   <div class="sidebar">
     <div class="logo">xyz launcher</div>
     <div class="nav">
-      <button><span class="material-icons">home</span>Home</button>
-      <button><span class="material-icons">apps</span>Store</button>
+      <button><span class="material-icons">storefront</span>Store</button>
+      <button><span class="material-icons">apps</span>Library</button>
       <button><span class="material-icons">download</span>Downloads</button>
       <button><span class="material-icons">settings</span>Settings</button>
     </div>
@@ -113,65 +83,55 @@ body {
     <div class="muted">Powered by Steam API (via Cloudflare proxy).</div>
   </div>
 
+  <!-- fullscreen overlay -->
   <div class="overlay" id="overlay">
-    <div class="overlay-bg" id="overlay-bg"></div>
-    <div class="overlay-content">
-      <div class="close" onclick="closeOverlay()">✕</div>
-      <img id="overlay-img" src="" alt="">
-      <h2 id="overlay-title"></h2>
-      <p id="overlay-desc"></p>
-      <div class="actions">
-        <button class="btn" id="steamBtn">View on Steam</button>
-        <button class="btn" id="repackBtn">Find Repacks</button>
-      </div>
-    </div>
+    <button class="close-btn" onclick="closeOverlay()">✕</button>
+    <img id="overlayImg" src="">
+    <h2 id="overlayName"></h2>
+    <p id="overlayDesc"></p>
   </div>
 
 <script>
-const APP_IDS = [1091500, 1174180, 271590, 252490, 578080, 381210, 236850];
-const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/?";
-const out = document.getElementById("games");
-const overlay = document.getElementById("overlay");
-const overlayImg = document.getElementById("overlay-img");
-const overlayTitle = document.getElementById("overlay-title");
-const overlayDesc = document.getElementById("overlay-desc");
-const overlayBg = document.getElementById("overlay-bg");
-const steamBtn = document.getElementById("steamBtn");
-const repackBtn = document.getElementById("repackBtn");
+const APP_IDS = [1091500,1174180,271590,252490,578080,381210,236850];
+const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/";
 
 async function loadGames() {
-  out.innerHTML = "<div style='color:var(--muted)'>Loading trending games...</div>";
+  const out = document.getElementById('games');
+  out.innerHTML = "<div style='color:var(--muted)'>Loading games...</div>";
+
   let html = "";
   for (const id of APP_IDS) {
     try {
-      fetch(`https://cool-dawn-8b67.amargomma50.workers.dev/?https://store.steampowered.com/api/appdetails?appids=${id}`)
+      const url = `${PROXY}?url=${encodeURIComponent(`https://store.steampowered.com/api/appdetails?appids=${id}`)}`;
+      const res = await fetch(url);
       const data = await res.json();
       const info = data[id]?.data;
       if (!info) continue;
+
       html += `
-        <div class="card" onclick="showGame(${id}, '${info.header_image}', '${info.name.replace(/'/g, "\\'")}', \`${info.detailed_description || ''}\`)">
+        <div class="card" onclick="showOverlay('${info.name}','${info.header_image}','${info.short_description.replace(/'/g,"\\'")}')">
           <img class="thumb" src="${info.header_image}">
           <div class="name">${info.name}</div>
         </div>`;
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
     }
   }
-  out.innerHTML = html || "<div style='color:var(--muted)'>Failed to load games.</div>";
+  out.innerHTML = html || "<div style='color:var(--muted)'>No games loaded.</div>";
 }
 
-function showGame(id, img, title, desc) {
-  overlayImg.src = img;
-  overlayTitle.textContent = title;
-  overlayDesc.innerHTML = desc || "No description available.";
-  overlayBg.style.backgroundImage = `url(${img})`;
-  steamBtn.onclick = () => window.open(`https://store.steampowered.com/app/${id}`, "_blank");
-  repackBtn.onclick = () => window.open(`https://hydralinks.pages.dev/search?q=${encodeURIComponent(title)}`, "_blank");
-  overlay.classList.add("active");
+function showOverlay(name, img, desc) {
+  const ov = document.getElementById('overlay');
+  document.getElementById('overlayName').innerText = name;
+  document.getElementById('overlayImg').src = img;
+  document.getElementById('overlayDesc').innerText = desc;
+  ov.classList.add('active');
 }
+
 function closeOverlay() {
-  overlay.classList.remove("active");
+  document.getElementById('overlay').classList.remove('active');
 }
+
 loadGames();
 </script>
 </body>
