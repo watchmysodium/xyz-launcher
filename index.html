@@ -144,7 +144,7 @@ async function loadGames() {
   let html = "";
   for (const id of APP_IDS) {
     try {
-      const res = await fetch(`${PROXY}https://store.steampowered.com/api/appdetails?appids=${id}`);
+      fetch(`https://cool-dawn-8b67.amargomma50.workers.dev/?https://store.steampowered.com/api/appdetails?appids=${id}`)
       const data = await res.json();
       const info = data[id]?.data;
       if (!info) continue;
