@@ -1,138 +1,348 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>XYZ Launcher — Steam Store</title>
+<title>XYZ Launcher — Hydra-style Game View (Scrape)</title>
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-  :root {
-    --bg: #000;
-    --glass: rgba(20,20,20,0.45);
-    --muted: #bdbdbd;
-    --accent: #0af;
-  }
-  * { box-sizing: border-box; font-family: "Pixelify Sans", sans-serif; }
-  body {
-    margin: 0; height: 100vh; background: linear-gradient(180deg, #000, #050505);
-    color: #fff; display: flex; overflow: hidden;
-  }
-  .sidebar {
-    width: 220px; background: var(--glass); backdrop-filter: blur(14px);
-    border-right: 1px solid rgba(255,255,255,0.04); padding: 24px;
-  }
-  .logo { font-weight: 700; letter-spacing: 2px; margin-bottom: 28px; }
-  .nav button {
-    display: flex; align-items: center; gap: 12px; width: 100%; border: 0;
-    background: transparent; color: var(--muted); padding: 12px; border-radius: 8px;
-    text-align: left; cursor: pointer;
-  }
-  .nav button:hover { background: rgba(255,255,255,0.03); color: #fff; }
-  .main {
-    flex: 1; padding: 28px; overflow: auto;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-  }
-  .title { font-size: 24px; margin-bottom: 18px; }
-  .games {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 18px;
-  }
-  .card {
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px; overflow: hidden;
-    cursor: pointer; transition: transform .14s;
-  }
-  .card:hover { transform: translateY(-6px); box-shadow: 0 8px 30px rgba(0,0,0,0.6); }
-  .thumb { width: 100%; height: 150px; object-fit: cover; background: #111; }
-  .name { font-weight: 700; padding: 12px; }
-  .muted { color: var(--muted); font-size: 13px; margin-top: 12px; }
+:root{
+  --bg:#000; --muted:#bdbdbd; --glass:rgba(20,20,20,.45); --accent:#6ad8ff;
+}
+*{box-sizing:border-box;font-family:"Pixelify Sans",sans-serif}
+body{margin:0;background:linear-gradient(180deg,#000,#050505);color:#fff;min-height:100vh;display:flex}
+.sidebar{width:220px;padding:24px;background:var(--glass);backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,.03)}
+.logo{font-weight:700;letter-spacing:2px;margin-bottom:22px}
+.nav button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:8px;text-align:left;cursor:pointer}
+.nav button:hover{background:rgba(255,255,255,0.03);color:#fff}
+.main{flex:1;padding:24px;overflow:auto}
+h1{margin:0 0 14px 0}
+.trending{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;margin-bottom:18px}
+.large-card{min-width:520px;border-radius:12px;overflow:hidden;background:#0b0b0d;border:1px solid rgba(255,255,255,.04);cursor:pointer;flex:0 0 520px;position:relative}
+.large-card .cover{height:320px;background-size:cover;background-position:center}
+.large-card .meta{padding:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border-radius:12px;padding:0;border:1px solid rgba(255,255,255,.03);overflow:hidden;cursor:pointer}
+.card img{width:100%;height:120px;object-fit:cover;display:block}
+.card .name{font-weight:700;padding:10px}
+.small-muted{color:var(--muted);font-size:13px;margin-top:12px}
 
-  /* overlay full-screen */
-  .overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-    display: none; flex-direction: column; align-items: center;
-    justify-content: center; padding: 20px; overflow-y: auto; z-index: 10;
-  }
-  .overlay.active { display: flex; }
-  .overlay img { width: 60%; border-radius: 12px; margin-bottom: 20px; }
-  .overlay h2 { margin: 0 0 12px; }
-  .overlay p { max-width: 800px; text-align: center; color: var(--muted); }
-  .close-btn {
-    position: absolute; top: 20px; right: 30px; cursor: pointer;
-    background: rgba(255,255,255,0.1); border: 0; color: #fff;
-    font-size: 20px; border-radius: 50%; width: 40px; height: 40px;
-  }
+/* overlay / full game view */
+.overlay{position:fixed;inset:0;display:none;z-index:999;background:linear-gradient(180deg,rgba(0,0,0,.85),rgba(0,0,0,.95));align-items:center;justify-content:center;overflow:auto;padding:28px}
+.overlay.active{display:flex}
+.overlay .backdrop{position:absolute;inset:0;filter:blur(30px);opacity:.25;background-size:cover;background-position:center}
+.view{position:relative;background:linear-gradient(180deg,rgba(10,10,10,.6),rgba(6,6,6,.85));border-radius:12px;padding:22px;max-width:1100px;width:100%;color:#fff;z-index:2;box-shadow:0 30px 80px rgba(0,0,0,.8)}
+.view .top{display:flex;gap:18px}
+.view .poster{width:360px;height:200px;background:#111;background-size:cover;background-position:center;border-radius:8px;flex-shrink:0}
+.view .info{flex:1}
+.view h2{margin:0 0 8px}
+.meta-row{color:var(--muted);font-size:13px;margin-top:6px}
+.view .desc{margin-top:14px;color:#ddd;line-height:1.5;max-height:420px;overflow:auto;padding-right:6px}
+.screens{display:flex;gap:8px;overflow-x:auto;margin-top:12px}
+.screens img{height:120px;border-radius:8px;object-fit:cover;cursor:pointer}
+.view .actions{display:flex;gap:8px;margin-top:12px}
+.btn{background:transparent;border:1px solid rgba(255,255,255,.08);padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer}
+.btn.primary{background:linear-gradient(90deg,#2db4ff,#6ad8ff);color:#001;border:0}
+.close-x{position:absolute;right:12px;top:12px;background:rgba(255,255,255,.06);border-radius:8px;padding:6px;cursor:pointer}
+.notice{margin-top:12px;background:rgba(255,255,255,.02);padding:10px;border-radius:8px;color:var(--muted);font-size:13px;border:1px dashed rgba(255,255,255,.03)}
+.err{color:#ff9b9b;background:rgba(255,0,0,.06);padding:8px;border-radius:8px;margin-top:10px}
+@media (max-width:900px){ .large-card{min-width:360px} .view .top{flex-direction:column} .view .poster{width:100%;height:240px} }
 </style>
 </head>
 <body>
-  <div class="sidebar">
+
+  <aside class="sidebar">
     <div class="logo">xyz launcher</div>
-    <div class="nav">
-      <button><span class="material-icons">storefront</span>Store</button>
+    <nav class="nav">
+      <button><span class="material-icons">home</span>Home</button>
       <button><span class="material-icons">apps</span>Library</button>
       <button><span class="material-icons">download</span>Downloads</button>
       <button><span class="material-icons">settings</span>Settings</button>
+    </nav>
+    <div style="margin-top:auto;color:var(--muted);font-size:13px">Scrape mode — requires proxy that returns HTML.</div>
+  </aside>
+
+  <main class="main">
+    <h1>Store — Trending</h1>
+
+    <!-- big scrollable trending row (2 displayed depending on viewport) -->
+    <div id="trending" class="trending"></div>
+
+    <h1 style="margin-top:18px">All (sample)</h1>
+    <div id="grid" class="grid"></div>
+    <div class="small-muted">Click a card to open the Hydra-style overlay with full store content (scraped)</div>
+  </main>
+
+  <!-- overlay -->
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true">
+    <div id="overlayBackdrop" class="backdrop"></div>
+    <div class="view" id="view">
+      <div class="close-x" onclick="closeView()">✕</div>
+      <div class="top">
+        <div id="poster" class="poster"></div>
+        <div class="info">
+          <h2 id="title">Title</h2>
+          <div id="metaRow" class="meta-row"></div>
+          <div class="actions">
+            <button id="steamBtn" class="btn primary">View on Steam</button>
+            <button id="repackBtn" class="btn">Find Repacks</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="desc" class="desc">Loading description...</div>
+
+      <div id="screens" class="screens" aria-hidden="false"></div>
+
+      <div id="err" class="err" style="display:none"></div>
+      <div class="notice">Support developers — use repacks responsibly.</div>
     </div>
   </div>
 
-  <div class="main">
-    <div class="title">Trending on Steam</div>
-    <div id="games" class="games"></div>
-    <div class="muted">Powered by Steam API (via Cloudflare proxy).</div>
-  </div>
-
-  <!-- fullscreen overlay -->
-  <div class="overlay" id="overlay">
-    <button class="close-btn" onclick="closeOverlay()">✕</button>
-    <img id="overlayImg" src="">
-    <h2 id="overlayName"></h2>
-    <p id="overlayDesc"></p>
-  </div>
-
 <script>
-const APP_IDS = [367520,1030300,1091500,1174180,271590,252490,578080,381210,236850];
-const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/";
+/* ===== CONFIG ===== */
+const PROXY = "https://cool-dawn-8b67.amargomma50.workers.dev/"; // must support ?url=encodedURL and return raw HTML + CORS
+const APP_IDS = [367520,1030300,1091500,1174180,271590,252490,578080]; // sample appids
+const hydraSearch = q => `https://hydralinks.pages.dev/search?q=${encodeURIComponent(q)}`;
 
-async function loadGames() {
-  const out = document.getElementById('games');
-  out.innerHTML = "<div style='color:var(--muted)'>Loading games...</div>";
+/* fallback banner images sent by you */
+const FALLBACK_BANNERS = [
+  'https://kenhoward.com/wp-content/uploads/2024/05/Is-Hydra-Launcher-piracy-See-all-the-details-about-Steams.jpeg',
+  'https://docs.hydralauncher.gg/assets/hydra.RM4cTNvX.png',
+  'https://preview.redd.it/what-do-you-think-of-hydra-launcher-v0-lutzgzw51w2f1.jpeg?auto=webp&s=9bc20b9de9497dbb48b53363fd089dff5c5df7d3'
+];
 
-  let html = "";
-  for (const id of APP_IDS) {
-    try {
-      const url = `${PROXY}?url=${encodeURIComponent(`https://store.steampowered.com/api/appdetails?appids=${id}`)}`;
-      const res = await fetch(url);
-      const data = await res.json();
+/* ===== helpers ===== */
+function esc(s){ return String(s||''); }
+function el(sel){ return document.querySelector(sel); }
+
+/* ===== fetch Steam app JSON for list (header images + names) ===== */
+async function fetchAppJSON(appid){
+  const url = `${PROXY}?url=${encodeURIComponent(`https://store.steampowered.com/api/appdetails?appids=${appid}`)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Proxy fetch failed: ${res.status}`);
+  return res.json();
+}
+
+/* build UI cards */
+async function buildGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = `<div style="color:var(--muted)">Loading games...</div>`;
+  const frag = document.createDocumentFragment();
+  for (const id of APP_IDS){
+    try{
+      const data = await fetchAppJSON(id);
       const info = data[id]?.data;
       if (!info) continue;
-
-      html += `
-        <div class="card" onclick="showOverlay('${info.name}','${info.header_image}','${info.short_description.replace(/'/g,"\\'")}')">
-          <img class="thumb" src="${info.header_image}">
-          <div class="name">${info.name}</div>
-        </div>`;
-    } catch (e) {
-      console.error(e);
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<img src="${info.header_image||FALLBACK_BANNERS[0]}" alt=""><div class="name">${esc(info.name)}</div>`;
+      card.addEventListener('click', ()=> openScrapedView(id, info.name, info.header_image));
+      frag.appendChild(card);
+    }catch(err){
+      console.warn('grid error',id,err);
     }
   }
-  out.innerHTML = html || "<div style='color:var(--muted)'>No games loaded.</div>";
+  grid.innerHTML = '';
+  grid.appendChild(frag);
 }
 
-function showOverlay(name, img, desc) {
-  const ov = document.getElementById('overlay');
-  document.getElementById('overlayName').innerText = name;
-  document.getElementById('overlayImg').src = img;
-  document.getElementById('overlayDesc').innerText = desc;
-  ov.classList.add('active');
+/* trending large cards (uses same JSON list, shows as large scroller) */
+async function buildTrending(){
+  const tr = document.getElementById('trending');
+  tr.innerHTML = `<div style="color:var(--muted)">Loading trending...</div>`;
+  const frag = document.createDocumentFragment();
+  for (const id of APP_IDS.slice(0,6)){
+    try{
+      const data = await fetchAppJSON(id);
+      const info = data[id]?.data;
+      if (!info) continue;
+      const card = document.createElement('div');
+      card.className = 'large-card';
+      const banner = info.header_image || FALLBACK_BANNERS[Math.floor(Math.random()*FALLBACK_BANNERS.length)];
+      card.innerHTML = `<div class="cover" style="background-image:url('${banner}')"></div>
+                        <div class="meta"><div style="font-weight:700;font-size:18px">${esc(info.name)}</div>
+                        <div style="color:var(--muted);margin-top:8px">${esc(info.release_date?.date||'Unknown')}</div></div>`;
+      card.addEventListener('click', ()=> openScrapedView(id, info.name, banner));
+      frag.appendChild(card);
+    }catch(err){
+      console.warn('trending err',id,err);
+    }
+  }
+  tr.innerHTML = '';
+  tr.appendChild(frag);
 }
 
-function closeOverlay() {
-  document.getElementById('overlay').classList.remove('active');
+/* ===== SCRAPE store page and populate overlay =====
+   This function fetches the full Steam store HTML for given appid via your proxy,
+   parses it, then extracts description, screenshots, meta info.
+   We attempt multiple selectors to be resilient across slight Steam markup changes.
+*/
+async function openScrapedView(appid, nameFromApi, fallbackImg){
+  const overlay = document.getElementById('overlay');
+  const backdrop = document.getElementById('overlayBackdrop');
+  const poster = document.getElementById('poster');
+  const titleEl = document.getElementById('title');
+  const metaRow = document.getElementById('metaRow');
+  const descEl = document.getElementById('desc');
+  const screensEl = document.getElementById('screens');
+  const errEl = document.getElementById('err');
+  const steamBtn = document.getElementById('steamBtn');
+  const repackBtn = document.getElementById('repackBtn');
+
+  // reset UI
+  errEl.style.display='none'; errEl.textContent='';
+  descEl.innerHTML = 'Loading full Steam page…';
+  screensEl.innerHTML = '';
+  titleEl.textContent = nameFromApi || '—';
+  poster.style.backgroundImage = `url(${fallbackImg||FALLBACK_BANNERS[0]})`;
+  backdrop.style.backgroundImage = `url(${fallbackImg||FALLBACK_BANNERS[1]})`;
+
+  overlay.classList.add('active');
+
+  // Build proxied URL
+  const storeUrl = `https://store.steampowered.com/app/${appid}`;
+  const prox = `${PROXY}?url=${encodeURIComponent(storeUrl)}`;
+
+  try {
+    const res = await fetch(prox);
+    if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
+    const html = await res.text();
+
+    // parse HTML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // TITLE - try multiple places
+    const title = doc.querySelector('.apphub_AppName')?.textContent?.trim()
+               || doc.querySelector('title')?.textContent?.replace(' on Steam','').trim()
+               || nameFromApi || 'Unknown Title';
+    titleEl.textContent = title;
+
+    // DESC - Steam main description is often in #game_area_description
+    let desc = '';
+    const descSelCandidates = [
+      '#game_area_description',
+      '.game_area_description',
+      '.apphub_intro', // fallback
+      '#about_box', // older
+      '.game_description_snippet'
+    ];
+    for (const s of descSelCandidates){
+      const node = doc.querySelector(s);
+      if (node && node.innerHTML && node.innerHTML.trim().length>10){
+        desc = node.innerHTML.trim();
+        break;
+      }
+    }
+    // if still empty, try to pull the "game_area_sys_req" or 'div#about_the_game' etc
+    if (!desc){
+      const alt = doc.querySelector('#about_the_game') || doc.querySelector('.game_area_sys_req') || doc.querySelector('#game_highlights');
+      if (alt) desc = alt.innerHTML.trim();
+    }
+
+    // sanitize: remove <script> tags and inline Steam widgets that may break
+    if (desc){
+      // remove scripts and inline event handlers
+      desc = desc.replace(/<script[\s\S]*?<\/script>/gi, '');
+      desc = desc.replace(/on\w+="[^"]*"/gi, '');
+      // rewrite img srcs to absolute if needed (Steam uses absolute mostly)
+    } else {
+      // fallback to short_description from API
+      const apiData = await fetch(`${PROXY}?url=${encodeURIComponent(`https://store.steampowered.com/api/appdetails?appids=${appid}`)}`).then(r=>r.json());
+      const short = apiData?.[appid]?.data?.short_description || '';
+      desc = `<p>${short}</p><p style="color:var(--muted)">(Full description not found — Steam markup may differ, or proxy blocked it.)</p>`;
+    }
+    descEl.innerHTML = desc;
+
+    // META: developer, publisher, release
+    const dev = Array.from(doc.querySelectorAll('.dev_row .dev_name, .details_block a')).map(n=>n.textContent?.trim()).filter(Boolean).slice(0,3).join(', ');
+    const release = doc.querySelector('.release_date .date')?.textContent?.trim() || doc.querySelector('.date')?.textContent?.trim() || '';
+    const publisher = doc.querySelector('.publisher a')?.textContent?.trim() || '';
+    metaRow.innerHTML = `<strong>Release:</strong> ${release||'Unknown'} • <strong>Developer:</strong> ${dev||'—'}${publisher?(' • <strong>Publisher:</strong> '+publisher):''}`;
+
+    // SCREENSHOTS / GIFS - try common selectors
+    screensEl.innerHTML = '';
+    const shotSelectors = [
+      '.highlight_screenshot_link img',
+      '.market_listing_largeimage img',
+      '.screenshot_holder img',
+      '.screenshot img',
+      'img.screenshot'
+    ];
+    const foundUrls = new Set();
+    for (const sel of shotSelectors){
+      doc.querySelectorAll(sel).forEach(img=>{
+        const src = img.getAttribute('src') || img.getAttribute('data-src') || img.src;
+        if (src && src.startsWith('http') && !foundUrls.has(src)){
+          foundUrls.add(src);
+        }
+      });
+      if (foundUrls.size >= 6) break;
+    }
+
+    // Also try data-screenshots inside JSON blocks: Steam sometimes includes an array in a JSON blob
+    if (foundUrls.size < 6){
+      const scripts = Array.from(doc.querySelectorAll('script')).map(s=>s.textContent).join('\n');
+      // look for "rgScreenshots" or "screenshot" JSON
+      const rgMatch = scripts.match(/rgScreenshots\s*=\s*(\[[\s\S]*?\]);/);
+      if (rgMatch){
+        try{
+          const arr = JSON.parse(rgMatch[1]);
+          arr.forEach(item=>{ if(item?.path_original) foundUrls.add(item.path_original); });
+        }catch(e){}
+      }
+    }
+
+    // If nothing found, try API images (header + capsules)
+    if (foundUrls.size === 0){
+      const apiData = await fetch(`${PROXY}?url=${encodeURIComponent(`https://store.steampowered.com/api/appdetails?appids=${appid}`)}`).then(r=>r.json());
+      const info = apiData?.[appid]?.data;
+      if (info){
+        if (info.header_image) foundUrls.add(info.header_image);
+        if (info.screenshots) info.screenshots.slice(0,6).forEach(s=>s?.path_full && foundUrls.add(s.path_full));
+        if (info.movies) info.movies.slice(0,2).forEach(m=> m?.webm?.max && foundUrls.add(m.webm.max));
+      }
+    }
+
+    // Render screenshots into overlay
+    if (foundUrls.size>0){
+      foundUrls.forEach(src=>{
+        const img = document.createElement('img');
+        img.src = src;
+        img.loading = 'lazy';
+        img.addEventListener('click', ()=>{ poster.style.backgroundImage = `url(${src})`; backdrop.style.backgroundImage = `url(${src})`; });
+        screensEl.appendChild(img);
+      });
+    } else {
+      screensEl.innerHTML = `<div style="color:var(--muted)">No screenshots found.</div>`;
+    }
+
+    // Buttons:
+    steamBtn.onclick = () => window.open(`https://store.steampowered.com/app/${appid}`, '_blank');
+    repackBtn.onclick = () => window.open(hydraSearch(title), '_blank');
+
+    // Poster + backdrop (try best image)
+    const posterUrl = Array.from(foundUrls)[0] || fallbackImg || FALLBACK_BANNERS[0];
+    poster.style.backgroundImage = `url(${posterUrl})`;
+    backdrop.style.backgroundImage = `url(${posterUrl})`;
+
+  } catch (err){
+    console.error('scrape error', err);
+    descEl.textContent = '';
+    document.getElementById('err').style.display='block';
+    document.getElementById('err').textContent = 'Failed to fetch or parse Steam page — check your Cloudflare proxy and console for details.';
+  }
 }
 
-loadGames();
+/* open/close helpers */
+function closeView(){ document.getElementById('overlay').classList.remove('active'); }
+
+/* init */
+buildTrending();
+buildGrid();
+
 </script>
 </body>
 </html>
